@@ -1,6 +1,6 @@
-# ryx
+# Reverse Your Ex
 
-Tumi is an open source website that reads old chat screenshots and lets you keep talking in the same style.
+**RYX** is an open source website that reads old chat screenshots and lets you keep talking in the same style.
 
 > পুরনো চ্যাটের স্ক্রিনশট থেকে তার লেখার ভঙ্গি শেখে, তারপর সেই ভঙ্গিতেই কথা বলে।
 
@@ -10,7 +10,7 @@ Everything runs on open-weight models. Your screenshots, your database, your mac
 
 ## The idea
 
-People keep years of conversations in screenshots. Tumi reads those screenshots, pulls out the message turns, and builds a style profile of the other person: how long their messages are, which emojis they use, whether they mix Bangla and English, how they open a conversation, what they call you.
+People keep years of conversations in screenshots. RYX reads those screenshots, pulls out the message turns, and builds a style profile of the other person: how long their messages are, which emojis they use, whether they mix Bangla and English, how they open a conversation, what they call you.
 
 You can then talk to an open-weight model that writes in that style. The model is not her, and the README is not going to pretend otherwise. It copies the texture of the writing, using only the screenshots you give it. Nothing is taken from her phone or her account.
 
@@ -19,7 +19,7 @@ You can then talk to an open-weight model that writes in that style. The model i
 1. Upload screenshots of the conversation.
 2. A vision model reads the bubbles and extracts speaker, text, and order.
 3. You correct the speaker mapping once: which side is her, which side is you.
-4. Tumi builds a style profile from the cleaned turns.
+4. RYX builds a style profile from the cleaned turns.
 5. The chat engine combines the base model, the style profile, and an optional LoRA adapter trained on your data.
 
 ```mermaid
@@ -74,8 +74,8 @@ What it cannot learn: memories that are not in the screenshots, tone of voice, o
 Requirements: Node 20+, pnpm, and Ollama. A GPU is optional for the prompt-only path and recommended for training.
 
 ```bash
-git clone https://github.com/your-org/tumi.git
-cd tumi
+git clone https://github.com/coldabs/ryx.git
+cd ryx
 pnpm install
 cp .env.example .env.local
 ollama pull qwen2.5vl:7b
@@ -89,11 +89,11 @@ Open `http://localhost:3000`, upload a few screenshots, and start a chat.
 `.env.example`:
 
 ```env
-DATABASE_URL=file:./data/tumi.db
+DATABASE_URL=file:./data/ryx.db
 OLLAMA_BASE_URL=http://localhost:11434
 VISION_MODEL=qwen2.5vl:7b
 CHAT_MODEL=llama3.1:8b
-ADAPTER_PATH=models/tumi-lora
+ADAPTER_PATH=models/ryx-lora
 ```
 
 ## Training your own adapter
@@ -104,9 +104,9 @@ The prompt-only path needs no training. Train an adapter when the style profile 
 python -m venv .venv
 . .venv/bin/activate
 pip install -r training/requirements.txt
-python training/build_dataset.py --db data/tumi.db --out data/profile.jsonl
-python training/train_qlora.py --config training/configs/tumi-8b.yaml
-python training/export_gguf.py --adapter out/tumi-lora --out models/tumi.gguf
+python training/build_dataset.py --db data/ryx.db --out data/profile.jsonl
+python training/train_qlora.py --config training/configs/ryx-8b.yaml
+python training/export_gguf.py --adapter out/ryx-lora --out models/ryx.gguf
 ```
 
 Point `ADAPTER_PATH` at the result and restart the app. The adapter is a small file, so you can keep several profiles side by side and switch between them.
@@ -114,7 +114,7 @@ Point `ADAPTER_PATH` at the result and restart the app. The adapter is a small f
 ## Project layout
 
 ```
-tumi/
+ryx/
   app/                Next.js routes and pages
   components/         chat, upload, and speaker mapping UI
   lib/
@@ -139,7 +139,7 @@ tumi/
 
 ## Privacy and consent
 
-Tumi is built to stay private, and it only works if you use it with permission.
+RYX is built to stay private, and it only works if you use it with permission.
 
 - Everything stays local by default. No upload leaves your machine unless you configure a remote server.
 - Upload only conversations you have permission to use. Copying someone's messages to build a chatbot of them without their knowledge is not what this project is for.
