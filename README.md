@@ -1,6 +1,6 @@
-# Tumi
+# ryx
 
-An open source website that reads old chat screenshots and lets you keep talking in the same style.
+Tumi is an open source website that reads old chat screenshots and lets you keep talking in the same style.
 
 > পুরনো চ্যাটের স্ক্রিনশট থেকে তার লেখার ভঙ্গি শেখে, তারপর সেই ভঙ্গিতেই কথা বলে।
 
