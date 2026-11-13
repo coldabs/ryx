@@ -1,160 +1,141 @@
-# Reverse Your Ex
+# RYX
 
-**RYX** is an open source website that reads old chat screenshots and lets you keep talking in the same style.
+### Reverse Your Ex
 
-> পুরনো চ্যাটের স্ক্রিনশট থেকে তার লেখার ভঙ্গি শেখে, তারপর সেই ভঙ্গিতেই কথা বলে।
+You know the feeling. You scroll back through an old chat and you can hear her in it — not her voice, exactly. The way she typed. Four short messages in a row instead of one long one. The same emoji, every time. A typo she never fixed. The way she opened a conversation, and the name she called you, and no one else did.
 
-Everything runs on open-weight models. Your screenshots, your database, your machine.
+RYX is planned as an open-source website that keeps that way of writing alive, so you can keep talking in it.
 
-**Status:** concept plus an early prototype. Screenshot ingest and prompt-only chat are the first milestone. Fine-tuning and model export come after.
+Status: planning phase. No code exists yet. Nothing here is shipped.
+
+License: MIT. For every language.
+
+---
+
+## Contents
+
+- [The idea](#the-idea)
+- [Why this exists](#why-this-exists)
+- [What it is not](#what-it-is-not)
+- [How it is planned to work](#how-it-is-planned-to-work)
+- [Planned stack](#planned-stack)
+- [Privacy and consent](#privacy-and-consent)
+- [Getting the whole chat out](#getting-the-whole-chat-out)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
 
 ## The idea
 
-People keep years of conversations in screenshots. RYX reads those screenshots, pulls out the message turns, and builds a style profile of the other person: how long their messages are, which emojis they use, whether they mix Bangla and English, how they open a conversation, what they call you.
+People keep years of conversations in screenshots. Not because they planned to. Because deleting them felt wrong.
 
-You can then talk to an open-weight model that writes in that style. The model is not her, and the README is not going to pretend otherwise. It copies the texture of the writing, using only the screenshots you give it. Nothing is taken from her phone or her account.
+RYX is planned to read those screenshots, pull out the message turns, and learn the shape of her writing: how long her messages ran, which emojis she reached for, when she mixed languages, how she opened a chat, what she called you.
 
-## How it works
+Then you can talk to an open-weight model that writes in that shape, on your own machine. Your screenshots, your database, your machine. Nothing leaves it unless you say so.
+
+## Why this exists
+
+Sometimes you miss how someone talked to you. Not the whole person, not the whole story. Just the sound of them in text.
+
+RYX is for that feeling. It does not bring anyone back, and it does not pretend to. It just keeps the way they wrote close, so you can talk in that style for a while longer.
+
+## What it is not
+
+It is not her. It copies the texture of the writing, only from the screenshots you give it.
+
+It cannot learn memories that are not in the screenshots, tone of voice, or anything outside the chat.
+
+It is not therapy, and not a substitute for a real relationship.
+
+It must not be used to contact, deceive, or impersonate the real person. Every reply has to say, in the chat itself, that it is AI.
+
+## How it is planned to work
 
 1. Upload screenshots of the conversation.
-2. A vision model reads the bubbles and extracts speaker, text, and order.
-3. You correct the speaker mapping once: which side is her, which side is you.
+2. A vision model reads the bubbles and pulls out speaker, text, and order.
+3. You correct the speaker mapping once — which side is her, which side is you.
 4. RYX builds a style profile from the cleaned turns.
-5. The chat engine combines the base model, the style profile, and an optional LoRA adapter trained on your data.
+5. The chat engine uses that profile, with an optional trained adapter if you want it.
 
-```mermaid
-flowchart LR
-  A[Screenshots] --> B[Vision model<br/>Qwen2.5-VL]
-  B --> C[Turn extractor]
-  C --> D[Speaker mapping UI]
-  D --> E[(Conversation store<br/>SQLite)]
-  E --> F[Style profile]
-  E --> G[QLoRA fine-tune]
-  F --> H[Chat engine]
-  G --> H
-  H --> I[Open-weight LLM<br/>Llama 3.1 / Qwen2.5]
-  I --> J[Reply]
-```
+## What the model is planned to learn
 
-## What the model learns
+Message length and rhythm, including the habit of sending four short messages in a row. Emoji, sticker, and punctuation habits. Language mixing, slang, and the typos that show up again and again — for every language, not one pair. Openers, nicknames, and running jokes that only make sense if you were there. When a reply goes dry, when it turns playful, when it changes the subject for no reason at all.
 
-- Message length and rhythm, including the habit of sending four short messages in a row.
-- Emoji, sticker, and punctuation habits.
-- Language mixing: romanized Bangla, English, slang, and the typos that show up repeatedly.
-- Openers, nicknames, and running jokes that appear in the screenshots.
-- When a reply is dry, when it is playful, and when it changes the subject.
+## Planned stack
 
-What it cannot learn: memories that are not in the screenshots, tone of voice, or anything that happened outside the chat. It imitates a writing style. It does not reconstruct a person.
+| Layer | Planned choice |
+| --- | --- |
+| Web app | Next.js, React, TypeScript |
+| Screenshot reading | Qwen2.5-VL 7B, local |
+| Chat model | Llama 3.1 8B or Qwen2.5 7B |
+| Fine-tuning | Unsloth + QLoRA |
+| Inference | Ollama for dev, vLLM for serving |
+| Storage | SQLite |
 
-## Features
+These are the planned choices, not tested ones. Model versions will be pinned when code lands.
 
-- Screenshot upload with multi-image batch support.
-- Vision-based turn extraction with a manual correction step.
-- Style profile you can read, edit, and version.
-- Prompt-only chat that works on a laptop with no training.
-- Optional QLoRA fine-tune with export to GGUF.
-- Local-first storage. Uploads and the SQLite database stay on disk.
-- Adapter export so the same profile runs on Ollama, llama.cpp, or vLLM.
+## Planned setup
 
-## Stack
-
-| Layer | Choice | Why |
-| --- | --- | --- |
-| Web app | Next.js (App Router), React, TypeScript | One codebase for UI and API routes |
-| Styling | Tailwind CSS | Fast iteration on the chat and upload screens |
-| Screenshot reading | Qwen2.5-VL 7B | Strong OCR on chat UIs, runs locally |
-| Chat model | Llama 3.1 8B or Qwen2.5 7B | Small enough for a single consumer GPU |
-| Fine-tuning | Unsloth + QLoRA | Trains an 8B adapter on 12 to 16 GB of VRAM |
-| Inference | Ollama for dev, vLLM for serving | Same GGUF or safetensors weights |
-| Memory search | bge-m3 embeddings | Multilingual, handles Bangla and English |
-| Storage | SQLite + Drizzle ORM | No server to run, easy to back up or delete |
-
-## Getting started
-
-Requirements: Node 20+, pnpm, and Ollama. A GPU is optional for the prompt-only path and recommended for training.
+No code exists, so this does not work yet. This is the setup we are aiming for:
 
 ```bash
 git clone https://github.com/coldabs/ryx.git
 cd ryx
 pnpm install
 cp .env.example .env.local
-ollama pull qwen2.5vl:7b
-ollama pull llama3.1:8b
-pnpm db:push
 pnpm dev
 ```
 
-Open `http://localhost:3000`, upload a few screenshots, and start a chat.
-
-`.env.example`:
-
-```env
-DATABASE_URL=file:./data/ryx.db
-OLLAMA_BASE_URL=http://localhost:11434
-VISION_MODEL=qwen2.5vl:7b
-CHAT_MODEL=llama3.1:8b
-ADAPTER_PATH=models/ryx-lora
-```
-
-## Training your own adapter
-
-The prompt-only path needs no training. Train an adapter when the style profile starts to feel flat.
-
-```bash
-python -m venv .venv
-. .venv/bin/activate
-pip install -r training/requirements.txt
-python training/build_dataset.py --db data/ryx.db --out data/profile.jsonl
-python training/train_qlora.py --config training/configs/ryx-8b.yaml
-python training/export_gguf.py --adapter out/ryx-lora --out models/ryx.gguf
-```
-
-Point `ADAPTER_PATH` at the result and restart the app. The adapter is a small file, so you can keep several profiles side by side and switch between them.
-
-## Project layout
-
-```
-ryx/
-  app/                Next.js routes and pages
-  components/         chat, upload, and speaker mapping UI
-  lib/
-    ingest/           screenshot parsing and turn extraction
-    style/            style profile builder
-    chat/             prompt assembly and model calls
-  training/           dataset builder, QLoRA config, export scripts
-  models/             local weights and adapters (gitignored)
-  data/               SQLite database and uploads (gitignored)
-```
-
-## Roadmap
-
-- [ ] Screenshot ingest and speaker correction
-- [ ] Style profile viewer and editor
-- [ ] Prompt-only chat against Ollama
-- [ ] QLoRA training from the UI
-- [ ] Adapter export to GGUF
-- [ ] Memory search over old messages
-- [ ] Voice notes with an open TTS model
-- [ ] Multi-profile support for different people
+Then open `http://localhost:3000`, upload a few screenshots, and start a chat.
 
 ## Privacy and consent
 
-RYX is built to stay private, and it only works if you use it with permission.
+Local by default. Nothing leaves your machine unless you set up a remote server yourself.
 
-- Everything stays local by default. No upload leaves your machine unless you configure a remote server.
-- Upload only conversations you have permission to use. Copying someone's messages to build a chatbot of them without their knowledge is not what this project is for.
-- The AI is labeled as an AI inside the chat. Do not use it to contact, deceive, or impersonate the real person.
-- Delete a profile from the settings page. It removes the uploads, the database rows, and the adapter.
-- 18+ only. This is not a therapy tool and not a substitute for a real relationship.
+Upload only conversations you have permission to use. Do not commit screenshots, databases, or trained adapters to this repo. Deleting a profile has to delete its uploads, its database rows, and its adapter — all of it, or it is a bug.
 
-## Model licenses
+18+ only.
 
-The code is MIT. The model weights keep their own licenses. Qwen2.5-VL is under the Qwen license, Llama 3.1 is under the Llama 3.1 Community License, and the adapter you train inherits the license of the base model. Check each model card before you redistribute weights or a trained adapter.
+## Getting the whole chat out
+
+This is the problem to solve first, and it is a stubborn one. No app gives you one clean button for one person's whole history.
+
+WhatsApp lets you export one chat, but caps it at about 40,000 messages. Instagram and Messenger make you export your whole account, then go find that one chat inside it. Screenshots work for a short chat, but not for years of history — and OCR can miss things, or misread them.
+
+So RYX has to make getting the chat out easy, or nothing else matters. The plan is a guided export in the app, step by step, in plain language — what to tap, what file you will get. RYX will take what you can get: a partial export, several exports, screenshots, or a mix of all three, stitch them together, and de-duplicate them. And it will not ask for the whole history. A sample across time — early, middle, recent — is enough to learn the style.
+
+| App | How to get it | What RYX will accept |
+| --- | --- | --- |
+| WhatsApp | In the chat: Export Chat, Without Media — a `.txt` file, one chat at a time, up to about 40,000 messages | `.txt` |
+| Instagram / Messenger | Meta Accounts Center: Export your information, Messages only, All time, JSON — each chat is in its own folder | JSON |
+
+Deleted messages do not appear in any export. Encrypted chats may need a separate download.
+
+## Open questions
+
+A few things are still undecided, and we would rather decide them properly than guess:
+
+- Which vision model handles the most chat apps and languages best?
+- How should the speaker-correction step work on a phone, where most of this will happen?
+- How much of the style profile should a user be able to edit by hand?
+
+## Roadmap
+
+- [ ] Guided chat download and import — the first milestone, because getting the whole chat out is the main problem
+- [ ] Screenshot ingest and speaker correction
+- [ ] Style profile viewer and editor
+- [ ] Prompt-only chat
+- [ ] Optional training and adapter export
+- [ ] Memory search, voice notes, and multi-profile support
 
 ## Contributing
 
-Issues and pull requests are welcome. Good first issues are tagged on the tracker. For anything that touches the training pipeline, open an issue first so the dataset format stays stable.
+Issues and pull requests are welcome. Do not include screenshots or personal data in them. For anything that touches training, open an issue first, so the dataset format stays stable.
+
+A human reads every issue and pull request. Nothing merges on its own.
 
 ## License
 
-MIT. See `LICENSE`.
+MIT. See [LICENSE](LICENSE). Model weights keep their own licenses.
