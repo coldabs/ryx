@@ -1,6 +1,6 @@
 # RYX
 
-### Reverse Your Ex
+### Reverse Engineer Your Ex
 
 You know the feeling. You scroll back through an old chat and you can hear her in it — not her voice, exactly. The way she typed. Four short messages in a row instead of one long one. The same emoji, every time. A typo she never fixed. The way she opened a conversation, and the name she called you, and no one else did.
 
